@@ -1,0 +1,336 @@
+.mm-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-base);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mm-bar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: calc(8px + var(--dsh-frame-top-clearance, 0px)) 16px 8px;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l2);
+}
+
+.mm-bar-title {
+  margin-right: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mm-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.mm-select,
+.mm-input {
+  height: 28px;
+  padding: 0 8px;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 8px;
+  outline: none;
+}
+
+.mm-select {
+  max-width: 220px;
+}
+
+.mm-select:focus-visible,
+.mm-input:focus-visible,
+.mm-textarea:focus-visible {
+  border-color: var(--dsw-alias-brand-primary);
+}
+
+.mm-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  white-space: nowrap;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.mm-button:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.mm-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.mm-button.mm-primary {
+  color: var(--dsw-alias-label-primary-foreground);
+  background: var(--dsw-alias-button-primary-fill);
+  border-color: transparent;
+}
+
+.mm-button.mm-primary:hover:not(:disabled) {
+  background: var(--dsw-alias-button-primary-hover);
+}
+
+.mm-spacer {
+  flex: 1;
+}
+
+.mm-caption {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+}
+
+.mm-board {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.mm-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* Excalidraw stacks its canvases at 1-2, its panels at 4 and its dialogs at 1000+. */
+.mm-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mm-badges {
+  position: absolute;
+  display: flex;
+  gap: 4px;
+  transform: translate(-100%, calc(-100% - 4px));
+}
+
+.mm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  line-height: 18px;
+  white-space: nowrap;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 9px;
+  pointer-events: auto;
+}
+
+button.mm-badge {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.mm-badge:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.mm-badge.mm-agent {
+  color: #5f3dc4;
+  background: #f3f0ff;
+  border-color: #b197fc;
+}
+
+.mm-badge.mm-agent.mm-active {
+  color: #ffffff;
+  background: #7048e8;
+  border-color: transparent;
+}
+
+.mm-badge.mm-locked {
+  color: var(--dsw-alias-label-primary);
+}
+
+.mm-popover {
+  position: absolute;
+  z-index: 8;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 320px;
+  padding: 14px;
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 12px;
+  box-shadow: 0 10px 32px rgb(0 0 0 / 18%);
+  pointer-events: auto;
+}
+
+.mm-popover-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mm-popover-title {
+  flex: 1;
+  font-weight: 600;
+}
+
+.mm-textarea {
+  box-sizing: border-box;
+  min-height: 96px;
+  padding: 8px;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 13px;
+  background: var(--dsw-alias-bg-base);
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+}
+
+.mm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.mm-button.mm-ghost {
+  padding: 0 8px;
+  color: var(--dsw-alias-label-tertiary);
+  background: none;
+  border-color: transparent;
+}
+
+.mm-button.mm-ghost:hover:not(:disabled) {
+  color: var(--dsw-alias-label-primary);
+}
+
+/* The conversation under the canvas. */
+.mm-dock {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  max-height: calc(100% - 200px);
+  min-height: 0;
+  border-top: 0.5px solid var(--dsw-alias-border-l2);
+}
+
+.mm-dock-resize {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  left: 0;
+  z-index: 5;
+  height: 8px;
+  cursor: row-resize;
+}
+
+.mm-dock-resize:hover {
+  background: linear-gradient(transparent 3px, var(--dsw-alias-brand-primary) 3px, var(--dsw-alias-brand-primary) 5px, transparent 5px);
+}
+
+.mm-dock.mm-collapsed {
+  height: auto;
+}
+
+.mm-dock-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  overflow-x: auto;
+}
+
+.mm-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  background: none;
+  border: 0.5px solid transparent;
+  border-radius: 13px;
+  cursor: pointer;
+}
+
+.mm-tab:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.mm-tab.mm-active {
+  color: var(--dsw-alias-label-primary);
+  font-weight: 600;
+  background: var(--dsw-alias-bg-layer-1);
+  border-color: var(--dsw-alias-border-l3);
+}
+
+.mm-tab:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.mm-hint {
+  white-space: nowrap;
+}
+
+.mm-dock-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mm-error {
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 12px;
+}
+
+.mm-toast {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 8;
+  max-width: min(560px, 90%);
+  padding: 8px 14px;
+  color: var(--dsw-alias-toast-label);
+  font-size: 13px;
+  background: var(--dsw-alias-toast-bg);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}

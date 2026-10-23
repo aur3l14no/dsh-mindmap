@@ -1,0 +1,71 @@
+{
+  "name": "@local/dsh-mindmap",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Persistent collaborative Excalidraw canvas for the DSH Web GUI, where boxes get their own Agent Teams teammates under a canvas lead.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24",
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "client.canvas.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "src/host/**",
+    "src/shared/**",
+    "assets/**",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.js",
+    "parity": "node scripts/parity.mjs",
+    "check": "node --check index.js && node --check client.js && node --check client.canvas.js"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "@deepseek-ai/schemastery": "~3.18.5"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "fractional-indexing": "^3.2.0",
+    "perfect-freehand": "1.2.0",
+    "roughjs": "4.6.4"
+  },
+  "devDependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
+    "esbuild": "0.28.2",
+    "opentype.js": "2.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "wawoff2": "2.0.1"
+  }
+}

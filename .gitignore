@@ -1,0 +1,9 @@
+node_modules/
+.claude/
+
+# Built by `npm run build`
+client.js
+client.canvas.js
+assets/excalidraw/
+assets/fonts/
+assets/font-metrics.json
