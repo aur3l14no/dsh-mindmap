@@ -46,6 +46,8 @@ export function describeUserEdits(canvas, writer, ids) {
   for (const id of ids) {
     const element = canvas.elements.get(id)
     if (!element) continue
+    // A box the user draws or changes beside yours is another agent's work, and that agent hears of it.
+    if (element.type === 'frame' && !own.some(frame => frame.id === id)) continue
     const frames = own.filter(frame => besideBox(element, frame))
     if (frames.length === 0) continue
     for (const frame of frames) near.add(boxInfo(frame).name)

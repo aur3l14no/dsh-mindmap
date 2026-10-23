@@ -40,11 +40,13 @@ test("an agent hears of the user's note beside its box at its next canvas call, 
   await cleanup()
 })
 
-test("the user's own drafting away from an agent's boxes, and agents' writes, are not reported", async () => {
+test("the user's drafting away from an agent's boxes, a new box beside it, and agents' writes are not reported", async () => {
   const { canvas, edits, write, draw, cleanup } = await scene()
   edits.since(canvas, pelican)
   edits.since(canvas, lead)
   draw('draft', 900, 600, 'region B: harbour?')
+  const { changes } = prepareWrite(canvas, lead, { elements: [{ type: 'frame', id: 'b2', name: 'Heron', x: 360, y: 0, width: 300, height: 200 }] })
+  canvas.commit(changes, { origin: 'client:page' })
   write(pelican, { elements: [{ type: 'ellipse', id: 'eye', x: 150, y: 50, width: 20, height: 20 }] })
   assert.equal(edits.since(canvas, pelican), null)
   assert.equal(edits.since(canvas, lead), null, 'the lead owns no box here, so nothing is its to hear')
