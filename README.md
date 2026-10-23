@@ -145,6 +145,16 @@ the address under [Install](#install) to match.
 plugin: `src/host/` holds the canvas store, lock and write rules, the canvas
 team, tools, routes and the PNG renderer; `src/shared/` is used by both sides.
 
+## Acknowledgements
+
+The idea comes from Yanyan Jiang's lecture *DeepSeek Harness* in Generative
+Software Engineering (NJU, 2026; [video](https://www.bilibili.com/video/BV144nc6KEA4),
+[notes](https://jyywiki.cn/GSE/2026/lect9.md)). Its Excalidraw plugin locks the
+user's selection, hands it to the canvas's Session as JSON and applies the
+model's replacement: "lock objects + serialize objects + UI". Mindmap turns the
+lock into boxes that hold a region, and gives each box its own Agent Teams
+teammate under a canvas lead.
+
 ## License
 
 [MIT](LICENSE). Bundled Excalidraw, renderer libraries and fonts keep their own
