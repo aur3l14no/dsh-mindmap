@@ -79,11 +79,13 @@ automation tasks.
 
 ## Agent tools
 
-Every Session in a workspace that has a canvas gets three tools and a short
-canvas policy (claim and lock a box before drawing, message the holder instead
-of working around a lock, let the drawing be the report and message others only
-when they must act, use only these tools on canvases). Their descriptions,
-schemas and errors are the whole contract.
+The lead Session of a canvas, its teammates and the helpers they start get three
+tools and a short canvas policy; other Sessions in the workspace get neither, nor
+any mention of the canvases. The policy covers how to work on a canvas (claim and
+lock a box before drawing, message the holder instead of working around a lock,
+let the drawing be the report and message others only when they must act, use only
+these tools on canvases). Their descriptions, schemas and errors are the whole
+contract.
 
 | Tool | Purpose |
 | --- | --- |
@@ -131,7 +133,7 @@ Set these on the `mindmap` entry in the profile's `cordis.patch.yml`:
 ```sh
 npm install --ignore-scripts   # peer dependencies come from DSH
 npm run build                  # client bundles and font assets
-npm test
+npm test                       # set DSH_RUNTIME_ROOT to a DSH app directory to include the agent tool tests
 npm run parity                 # PNG renderer next to Excalidraw's own export
 ```
 

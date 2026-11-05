@@ -24,7 +24,7 @@ export function checkCanvasName(name) {
   return name
 }
 
-/** Emits `created({ workspaceId, name })` when a canvas is created. */
+/** Emits `opened(canvas)` when a canvas has loaded. */
 export class Canvases extends EventEmitter {
   constructor(workspaces, logger) {
     super()
@@ -88,7 +88,6 @@ export class Canvases extends EventEmitter {
     const canvas = new Canvas({ workspaceId, workspacePath: workspace.path, name })
     if (existsSync(canvas.file)) throw new MindmapError(`canvas "${name}" already exists`, 409)
     await canvas.create()
-    this.emit('created', { workspaceId, name })
     return this.open(workspaceId, name)
   }
 

@@ -49,7 +49,7 @@ export function apply(ctx, config) {
   const team = new CanvasTeams(ctx, { provider: config.teammateProvider ?? 'spawn' })
   const activity = new CanvasActivity({ canvases, team, agents: ctx.agents })
   const edits = new UserEdits()
-  const mindmap = { canvases, team, activity, edits, workspaces: ctx.workspaceRegistry, agents: ctx.agents, fontFiles, acceptsImages, saveImage }
+  const mindmap = { canvases, team, activity, edits, workspaces: ctx.workspaceRegistry, fontFiles, acceptsImages, saveImage }
   const tools = new CanvasTools(mindmap, ctx.logger)
   registerRoutes(ctx, mindmap)
 
@@ -59,7 +59,6 @@ export function apply(ctx, config) {
   ctx.on('session/event', (session, event) => activity.noteEvent(session, event))
   ctx.on('session/disposed', session => activity.forget(session.id))
   canvases.on('opened', canvas => edits.watch(canvas))
-  canvases.on('created', ({ workspaceId }) => tools.installWorkspace(workspaceId).catch(warn('installing tools for a new canvas')))
   for (const agent of ctx.agents.list()) tools.install(agent).catch(warn(`installing tools on agent ${agent.id}`))
 
   ctx.effect(() => async () => {

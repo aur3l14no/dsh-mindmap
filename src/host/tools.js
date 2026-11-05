@@ -1,6 +1,6 @@
 // The agent tools: look at a canvas (canvas_read, canvas_view) and change it
-// (canvas_write). They are installed, with the canvas policy, on every agent
-// whose workspace has a canvas; box locks decide what each agent may change.
+// (canvas_write). They and the canvas policy reach only the agents working on a
+// canvas, its lead and team; box locks decide what each agent may change.
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { boxInfo, boxToRect, elementBounds, frameBox, isBox, lockHolder, sameAgent } from '../shared/scene.js'
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE } from '../shared/fonts.js'
@@ -38,7 +38,7 @@ Boxes: an element lying fully inside a frame belongs to that box. A frame takes 
 Example: {"elements": [{"type": "frame", "id": "bike", "name": "Bicycle", "x": 0, "y": 0, "width": 320, "height": 240, "lock": true}, {"type": "ellipse", "id": "wheel", "x": 40, "y": 120, "width": 80, "height": 80}, {"type": "rectangle", "id": "seat", "x": 160, "y": 40, "width": 120, "height": 50, "label": "Seat", "backgroundColor": "#a5d8ff"}, {"type": "arrow", "start": {"id": "wheel"}, "end": {"id": "seat"}}, {"id": "old-note", "strokeColor": "#e03131"}], "delete": ["draft-1"]}`
 
 const POLICY = `# Mindmap canvases
-This workspace has Mindmap canvases: Excalidraw boards that the user and agents draw on together, read with canvas_read and canvas_view and changed with canvas_write. Each canvas has a lead, the Session the user talks to under the canvas, which leads the Agent Team working on it. When the user draws a box and gives it an instruction, a teammate is created for that box and the box is locked to it.
+You work on a Mindmap canvas: an Excalidraw board that the user and agents draw on together, read with canvas_read and canvas_view and changed with canvas_write. A canvas has a lead, the Session the user talks to under it, which leads the Agent Team working on it. When the user draws a box and gives it an instruction, a teammate is created for that box and the box is locked to it.
 - Claim a box before you draw: lock the box you were given or a free one ({"id": "<box>", "lock": true}), or create one in free space with "lock": true. Keep your work inside it and grow the box when you need room.
 - Only the holder of a locked box can change it. Do not cover, move or redraw what others hold; when you need their space or content, message the holder or the lead with send_message. To reuse content from another box, copy it into yours (canvas_write "copy") rather than moving it.
 - Read and change canvases only with these tools, never by opening .mindmaps/<canvas>/canvas.excalidraw: it may lag behind the canvas, and canvas_read already returns every field that differs from its default. canvas_write "move" and "copy" place, scale and turn whole groups of elements, so assembling parts needs no geometry of your own.
@@ -64,7 +64,7 @@ Your work is planning, staffing and refereeing: do not do the parts or relay con
 
 /**
  * @param mindmap - operations shared with the canvas UI: `canvases`, `team`,
- *   `activity`, `workspaces`, `agents`, `fontFiles`, `acceptsImages(agent, signal)`
+ *   `activity`, `workspaces`, `fontFiles`, `acceptsImages(agent, signal)`
  *   and `saveImage(png, name)`.
  */
 export class CanvasTools {
@@ -75,21 +75,27 @@ export class CanvasTools {
     this.definitions = [this.readTool(), this.viewTool(), this.writeTool()]
   }
 
-  /** Install the tools, the canvas policy and the agent's place on the canvases in a workspace that has a canvas. */
+  /**
+   * Install the tools, the canvas policy and the agent's place on its canvas in a
+   * workspace that has a canvas. They apply step by step, because an agent joins
+   * a canvas after it is created: a lead when the canvas names its Session, a
+   * teammate when the Team admits it.
+   */
   async install(agent) {
     if (this.installs.has(agent)) return
     const workspace = await this.workspaceOf(agent)
     const names = workspace ? await this.mindmap.canvases.names(workspace.id) : []
     if (names.length === 0 || this.installs.has(agent)) return
-    // Loaded now, so the prompt context can name the agent's canvas.
+    // Loaded now, since each canvas names its lead Session.
     await Promise.all(names.map(item => this.mindmap.canvases.open(workspace.id, item).catch(() => undefined)))
     if (this.installs.has(agent)) return
     const fiber = agent.ctx.inject(['tools', 'systemPrompt'], scoped => {
-      for (const definition of this.definitions) scoped.tools.register(definition)
+      const when = () => this.canvasOf(agent, workspace.id) !== undefined
+      for (const definition of this.definitions) scoped.tools.register(definition, { when })
       scoped.systemPrompt.section({
         name: 'mindmap:policy',
         order: scoped.systemPrompt.getSectionOrder('TEAM_POLICY') + 10,
-        text: () => (this.leadCanvasOf(agent, workspace.id) ? `${POLICY}\n\n${LEAD_POLICY}` : POLICY),
+        text: () => this.policyOf(agent, workspace.id),
       })
       scoped.systemPrompt.context({
         name: 'mindmap:canvas',
@@ -100,23 +106,27 @@ export class CanvasTools {
     this.installs.set(agent, fiber)
   }
 
-  /** The canvas `agent` leads, if any. */
-  leadCanvasOf(agent, workspaceId) {
-    const writer = this.mindmap.team.writerOf(agent)
-    if (writer.name !== 'lead') return undefined
-    return this.mindmap.canvases.loadedIn(workspaceId).find(canvas => canvas.sessionId === writer.lead)
+  /** The canvas `agent` works on, as its lead or in its Team, if any. */
+  canvasOf(agent, workspaceId) {
+    const { lead } = this.mindmap.team.writerOf(agent)
+    return this.mindmap.canvases.loadedIn(workspaceId).find(canvas => canvas.sessionId === lead)
   }
 
-  /** One line placing the agent: lead of a canvas, teammate on one, or neither. */
+  /** The canvas policy for the agent's role; empty off a canvas. */
+  policyOf(agent, workspaceId) {
+    if (!this.canvasOf(agent, workspaceId)) return ''
+    return this.mindmap.team.writerOf(agent).name === 'lead' ? `${POLICY}\n\n${LEAD_POLICY}` : POLICY
+  }
+
+  /** One line placing the agent as lead of its canvas or teammate on it; empty off a canvas. */
   placeOf(agent, workspaceId) {
-    const writer = this.mindmap.team.writerOf(agent)
-    const canvases = this.mindmap.canvases.loadedIn(workspaceId)
-    const own = canvases.find(canvas => canvas.sessionId === writer.lead)
-    if (own && writer.name === 'lead') {
+    const own = this.canvasOf(agent, workspaceId)
+    if (!own) return ''
+    const { name } = this.mindmap.team.writerOf(agent)
+    if (name === 'lead') {
       return `You are the lead of Mindmap canvas "${own.name}": the user talks to you in the chat under it, so "the canvas" means this one, and its boxes are named there.`
     }
-    if (own) return `You work on Mindmap canvas "${own.name}" as teammate "${writer.name}".`
-    return `Mindmap canvases in this workspace: ${canvases.map(canvas => `"${canvas.name}"`).join(', ')}.`
+    return `You work on Mindmap canvas "${own.name}" as teammate "${name}".`
   }
 
   uninstall(agent) {
@@ -124,12 +134,6 @@ export class CanvasTools {
     if (!fiber) return
     this.installs.delete(agent)
     fiber.dispose().catch(error => this.logger.warn(`mindmap: removing tools from agent ${agent.id} failed: ${error.message}`))
-  }
-
-  async installWorkspace(workspaceId) {
-    for (const agent of this.mindmap.agents.list()) {
-      if ((await this.workspaceOf(agent))?.id === workspaceId) await this.install(agent)
-    }
   }
 
   disposeAll() {
