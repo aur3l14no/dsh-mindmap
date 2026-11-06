@@ -7,7 +7,7 @@
   "license": "MIT",
   "engines": {
     "node": ">=24",
-    "dsh": ">=0.2.1-rc.2 <0.3.0"
+    "dsh": ">=0.2.2-alpha.2 <0.3.0"
   },
   "exports": {
     ".": "./index.js",
@@ -50,8 +50,8 @@
     "check": "node --check index.js && node --check client.js && node --check client.canvas.js"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-llm": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.2-alpha.2",
+    "@deepseek-ai/dsh-tools": "0.2.2-alpha.2",
     "@deepseek-ai/schemastery": "~3.18.5"
   },
   "dependencies": {

@@ -12,10 +12,6 @@ import { describeView, readCanvas, resolveScope, viewCanvas } from './views.js'
 const ANY_OBJECT = { type: 'object', additionalProperties: true }
 const MAX_REPORTED_BOUNDS = 100
 
-const CANVAS_PARAM = {
-  type: 'string',
-  description: 'Canvas name in this workspace. Defaults to the canvas your Agent Team works on, or the only canvas.',
-}
 const GROUP_SHAPE = {
   scale: { type: 'number', description: 'Size relative to now, default 1; text scales too.' },
   angle: { type: 'number', description: 'Radians to turn the group clockwise about its centre, default 0.' },
@@ -145,39 +141,25 @@ export class CanvasTools {
     return cwd ? this.mindmap.workspaces.resolveByPath(cwd) : undefined
   }
 
-  /** Who is calling and which canvas they mean: `{ canvas, writer }`. */
-  async caller(agent, canvasName) {
-    const { canvas, writer } = await this.resolveCaller(agent, canvasName)
-    await this.mindmap.team.ensureLead(canvas)
-    return { canvas, writer }
-  }
-
-  async resolveCaller(agent, canvasName) {
+  /** Who is calling and the canvas it works on: `{ canvas, writer }`. */
+  async caller(agent) {
     if (!agent) throw new MindmapError('the canvas tools run only inside an agent session')
-    const writer = this.mindmap.team.writerOf(agent)
     const workspace = await this.workspaceOf(agent)
-    if (!workspace) throw new MindmapError('this session is not in a DSH workspace, so it has no canvases')
-    const names = await this.mindmap.canvases.names(workspace.id)
-    const list = names.map(item => `"${item}"`).join(', ') || 'none'
-    if (canvasName !== undefined) {
-      if (!names.includes(canvasName)) throw new MindmapError(`no canvas "${canvasName}" in this workspace; canvases: ${list}`)
-      return { canvas: await this.mindmap.canvases.open(workspace.id, canvasName), writer }
-    }
-    const canvases = await Promise.all(names.map(item => this.mindmap.canvases.open(workspace.id, item)))
-    const canvas = canvases.find(item => item.sessionId === writer.lead) ?? (canvases.length === 1 ? canvases[0] : undefined)
-    if (!canvas) throw new MindmapError(`name the canvas with "canvas"; this workspace has ${list}`)
-    return { canvas, writer }
+    const canvas = workspace && this.canvasOf(agent, workspace.id)
+    if (!canvas) throw new MindmapError('this session does not work on a Mindmap canvas')
+    await this.mindmap.team.ensureLead(canvas)
+    return { canvas, writer: this.mindmap.team.writerOf(agent) }
   }
 
   readTool() {
     return defineTool({
       name: 'canvas_read',
       description: 'Read a Mindmap canvas as JSON: who you are on it, its boxes (named frames grouping elements, with their owner and who holds their lock), and the elements in drawing order in the compact Excalidraw form canvas_write accepts, where fields with their default value are left out.',
-      parameters: { canvas: CANVAS_PARAM, ...SCOPE_PARAMS },
+      parameters: SCOPE_PARAMS,
       output: { schema: ANY_OBJECT, render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }] },
       isConcurrencySafe: () => true,
       execute: async (args, exec) => {
-        const { canvas, writer } = await this.caller(exec.agent, args.canvas)
+        const { canvas, writer } = await this.caller(exec.agent)
         const scope = resolveScope(canvas, args)
         const userEdits = this.mindmap.edits.since(canvas, writer)
         this.mindmap.activity.noteLook(canvas, writer, exec.agent.id, 'read', scope.box)
@@ -191,7 +173,6 @@ export class CanvasTools {
       name: 'canvas_view',
       description: 'Look at a Mindmap canvas: render the whole canvas, one box or chosen elements as a PNG image you can see, drawn as the canvas shows it. The image is also saved in the canvas folder.',
       parameters: {
-        canvas: CANVAS_PARAM,
         ...SCOPE_PARAMS,
         region: {
           type: 'object',
@@ -216,7 +197,7 @@ export class CanvasTools {
       },
       isConcurrencySafe: () => true,
       execute: async (args, exec) => {
-        const { canvas, writer } = await this.caller(exec.agent, args.canvas)
+        const { canvas, writer } = await this.caller(exec.agent)
         const scope = resolveScope(canvas, args)
         const userEdits = this.mindmap.edits.since(canvas, writer)
         this.mindmap.activity.noteLook(canvas, writer, exec.agent.id, 'view', scope.box)
@@ -238,7 +219,6 @@ export class CanvasTools {
       name: 'canvas_write',
       description: WRITE_DESCRIPTION,
       parameters: {
-        canvas: CANVAS_PARAM,
         elements: { type: 'array', items: ANY_OBJECT, description: 'Elements to create, or patches of existing elements by "id".' },
         move: {
           type: 'array',
@@ -273,7 +253,7 @@ export class CanvasTools {
       },
       output: { schema: ANY_OBJECT, render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }] },
       execute: async (args, exec) => {
-        const { canvas, writer } = await this.caller(exec.agent, args.canvas)
+        const { canvas, writer } = await this.caller(exec.agent)
         const userEdits = this.mindmap.edits.since(canvas, writer)
         if (!args.elements?.length && !args.move?.length && !args.copy?.length && !args.delete?.length) {
           throw new MindmapError('give "elements" to create or change, "move", "copy" or "delete"')
@@ -301,7 +281,6 @@ function describeCaller(canvas, writer) {
   const boxes = held.length > 0
     ? `Boxes locked to you: ${held.map(frame => `"${boxInfo(frame).name}" (${frame.id})`).join(', ')}.`
     : 'No box is locked to you; lock one before you draw.'
-  if (writer.lead !== canvas.sessionId) return `You are not in the Agent Team of canvas "${canvas.name}". ${boxes}`
   if (writer.name === 'lead') return `You are the lead of canvas "${canvas.name}": the user talks to you under the canvas, and you lead the Agent Team working on it. You may unlock boxes your teammates hold. ${boxes}`
   return `You are teammate "${writer.name}" in the Agent Team of canvas "${canvas.name}", led by "lead". ${boxes}`
 }

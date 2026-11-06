@@ -83,7 +83,7 @@ test('asking for a box spawns a teammate of the lead, with the box locked to it 
   assert.equal(request.context, 'fresh')
   assert.equal(request.provider, 'spawn')
   assert.match(request.prompt[0].text, /draw a pelican riding a bicycle\n/)
-  assert.match(request.prompt[0].text, /canvas_read \{"canvas": "zoo", "scope": "b1"\}/)
+  assert.match(request.prompt[0].text, /canvas_read \{"scope": "b1"\}/)
   assert.equal(box.lock.name, 'pelican-2')
   assert.equal(box.owner.name, 'pelican-2')
   assert.deepEqual(boxInfo(canvas.get('b1')).owner, member)

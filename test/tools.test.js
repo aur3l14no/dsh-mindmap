@@ -51,6 +51,7 @@ async function fixture(t) {
   const team = new CanvasTeams({
     get: name => (name === 'agentTeams' ? { tryMembership: agent => memberships.get(agent.id) } : undefined),
     agents: { get: id => agents.get(id) },
+    sessionController: { resolveAgent: async () => ({ agent: {} }) },
   }, { provider: 'spawn' })
   const tools = new CanvasTools({ canvases, team, workspaces }, logger)
 
@@ -76,7 +77,7 @@ async function fixture(t) {
     }
   }
 
-  return { agent, step, canvas, memberships }
+  return { agent, step, canvas, canvases, memberships, tools }
 }
 
 function assertOutside({ tools, prompt, context }) {
@@ -130,4 +131,15 @@ test('a helper works on the canvas only when the Session that started it does', 
 
   await h.agent('other')
   assertOutside(await h.step(await h.agent('stray', { origin: 'subagent', parentSession: 'other' })))
+})
+
+test('an agent reaches only the canvas it works on', { skip }, async t => {
+  const h = await fixture(t)
+  h.canvas.setSession('lead')
+  const pond = await h.canvases.create('ws', 'pond')
+  pond.setSession('pond-lead')
+  const lead = await h.agent('lead')
+  assert.equal((await h.tools.caller(lead)).canvas, h.canvas)
+  await assert.rejects(h.tools.caller(await h.agent('other')), /does not work on a Mindmap canvas/u)
+  for (const tool of h.tools.definitions) assert.ok(tool.parameters.properties && !('canvas' in tool.parameters.properties), `${tool.name} names no canvas`)
 })

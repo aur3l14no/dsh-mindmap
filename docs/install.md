@@ -7,7 +7,7 @@ of that profile, so tell the user what you will run before running it.
 ## 1. Find the DSH and the profile
 
 - In a terminal, `dsh --version` must print `0.2.x` (the bundle accepts
-  `>=0.2.1-rc.2 <0.3.0`). Older or newer: stop and tell the user.
+  `>=0.2.2-alpha.2 <0.3.0`). Older or newer: stop and tell the user.
 - The usual target is the `web` profile, the one `dsh web` starts. If the user
   runs the DSH Desktop app, its profile cannot be changed from the `dsh`
   command: use the `plugin_manager` tool inside DSH, or have the user follow the

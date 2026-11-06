@@ -122,7 +122,7 @@ export class CanvasTeams {
         prompt: [{
           type: 'text',
           text: `The user drew box "${boxName}" (id "${boxId}", x ${rect.x}, y ${rect.y}, ${rect.width}×${rect.height}) on Mindmap canvas "${canvas.name}" and asked:\n\n${text}\n\n`
-            + `The box is yours and locked to you, so only you can change what lies in it. Read it with canvas_read {"canvas": "${canvas.name}", "scope": "${boxId}"}, look at it with canvas_view, and draw inside it with canvas_write.`,
+            + `The box is yours and locked to you, so only you can change what lies in it. Read it with canvas_read {"scope": "${boxId}"}, look at it with canvas_view, and draw inside it with canvas_write.`,
         }],
         context: 'fresh',
         provider: this.provider,
