@@ -107,7 +107,7 @@ export async function viewCanvas(canvas, target, { region, scale = 1, grid = fal
     box = unionBox(target.ids.map(id => canvas.get(id)).map(element => isBox(element) ? frameBox(element) : elementBounds(element)))
   }
   if (typeof scale !== 'number' || !(scale > 0) || scale > MAX_SCALE) throw new MindmapError(`scale is a number of pixels per canvas unit, above 0 and at most ${MAX_SCALE}`)
-  const rendered = renderScene(canvas.snapshot(), {
+  const rendered = await renderScene(canvas.snapshot(), {
     region: box ?? undefined,
     ids: region || target.box ? undefined : target.ids,
     scale,

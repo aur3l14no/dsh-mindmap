@@ -102,12 +102,12 @@ async function buildScene(dir) {
 /** Each cell drawn by the Host renderer, with the rows it leaves above the cell for box titles. */
 function renderCells(elements, cells) {
   const fontFiles = defaultCjkFonts()
-  return cells.map(cell => {
-    const out = renderScene({ elements }, {
+  return Promise.all(cells.map(async cell => {
+    const out = await renderScene({ elements }, {
       region: { x1: cell.x, y1: cell.y, x2: cell.x + CELL_WIDTH, y2: cell.y + CELL_HEIGHT }, padding: 0, scale: SCALE, fontFiles,
     })
     return { ...cell, host: `data:image/png;base64,${out.png.toString('base64')}`, top: (cell.y - out.region.y1) * SCALE }
-  })
+  }))
 }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.woff2': 'font/woff2' }
@@ -182,7 +182,7 @@ const { values: options } = parseArgs({ options: { out: { type: 'string', defaul
 const work = await mkdtemp(join(tmpdir(), 'mindmap-parity-work-'))
 try {
   const { elements, cells } = await buildScene(work)
-  const scene = { elements, cells: renderCells(elements, cells), scale: SCALE, cellWidth: CELL_WIDTH, cellHeight: CELL_HEIGHT }
+  const scene = { elements, cells: await renderCells(elements, cells), scale: SCALE, cellWidth: CELL_WIDTH, cellHeight: CELL_HEIGHT }
   await writeFile(join(work, 'scene.json'), JSON.stringify(scene))
   await writeFile(join(work, 'index.html'), '<!doctype html><meta charset="utf-8"><script src="page.js"></script>\n')
   await build({

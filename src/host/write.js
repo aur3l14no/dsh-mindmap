@@ -397,6 +397,13 @@ export function prepareWrite(canvas, writer, request) {
     if (!before || JSON.stringify(before) === JSON.stringify(element)) continue
     changes.push({ ...element, version: before.version + 1, versionNonce: Math.floor(Math.random() * 2 ** 31), updated: Date.now() })
   }
+  const wrapped = {}
+  for (const element of changes) {
+    if (element.type !== 'text' || element.isDeleted || element.text === element.originalText) continue
+    if (createdSet.has(element.id) || canvas.elements.get(element.id)?.text !== element.text) {
+      wrapped[element.containerId ?? element.id] = element.text.split('\n')
+    }
+  }
   return {
     changes,
     report: {
@@ -405,6 +412,7 @@ export function prepareWrite(canvas, writer, request) {
       deleted: [...deletedIds],
       absorbed,
       copies,
+      wrapped,
       warnings,
     },
   }

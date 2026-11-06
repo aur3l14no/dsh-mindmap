@@ -244,3 +244,20 @@ test('a refusal says where the locked box is, and when a new element reuses an i
     rejected(/"ground" lies in box "Input" \(in\) at x 0, y 0, 300×200, which is locked by teammate "alice".*the id "ground" is taken by an existing line; give a new element another id/s))
   await cleanup()
 })
+
+test('a write reports the text it broke to fit, line by line', async () => {
+  const label = 'a label far too long for this small shape'
+  const { write, cleanup } = await scene([])
+  const wrapped = write({ elements: [
+    { type: 'rectangle', id: 'tight', x: 0, y: 0, width: 120, height: 40, label },
+    { type: 'rectangle', id: 'roomy', x: 0, y: 200, width: 900, height: 40, label },
+  ] }).wrapped
+  assert.deepEqual(Object.keys(wrapped), ['tight'])
+  assert.ok(wrapped.tight.length > 1)
+  assert.equal(wrapped.tight.join(' '), label)
+
+  assert.deepEqual(write({ elements: [{ id: 'tight', x: 300 }] }).wrapped, {}, 'moving it changes no line')
+  assert.deepEqual(write({ elements: [{ id: 'tight', label: 'short' }] }).wrapped, {}, 'a label that fits again is not reported')
+  assert.ok(write({ elements: [{ id: 'roomy', width: 120 }] }).wrapped.roomy.length > 1, 'shrinking a shape breaks its label')
+  await cleanup()
+})

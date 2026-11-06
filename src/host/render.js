@@ -3,7 +3,7 @@
 // needs no browser, so agents can look at a canvas while its page is closed.
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { Resvg } from '@resvg/resvg-js'
+import { renderAsync } from '@resvg/resvg-js'
 import { getStroke } from 'perfect-freehand'
 import rough from 'roughjs'
 import { lineHeightOf, verticalOffset } from '../shared/fonts.js'
@@ -359,7 +359,7 @@ function gridSvg(view, scale) {
 }
 
 /**
- * Render part of a scene.
+ * Render part of a scene, off the main thread: a scene with CJK text takes seconds.
  * @param scene - `{ elements, files, appState }`, elements in z-order.
  * @param options.region - scene box to show; defaults to everything.
  * @param options.ids - restrict drawing to these elements (and their bound text).
@@ -368,7 +368,7 @@ function gridSvg(view, scale) {
  * @param options.fontFiles - extra font files, such as a CJK face for text outside Excalifont.
  * @returns `{ png, width, height, region, scale }`; `region` is the scene box the image shows.
  */
-export function renderScene(scene, { region, ids, scale = 1, padding = 24, grid = false, fontFiles = [] } = {}) {
+export async function renderScene(scene, { region, ids, scale = 1, padding = 24, grid = false, fontFiles = [] } = {}) {
   const live = scene.elements.filter(element => !element.isDeleted)
   let drawn = live
   if (ids) {
@@ -403,10 +403,10 @@ export function renderScene(scene, { region, ids, scale = 1, padding = 24, grid 
     + `<defs>${defs.join('')}</defs><rect x="${num(view.x1)}" y="${num(view.y1)}" width="${num(width)}" height="${num(height)}" fill="${escape(svgBackground)}"/>`
     + `${grid ? gridSvg(view, effectiveScale) : ''}${body.join('')}</svg>`
   const files = [...BUNDLED_FONTS, ...xiaolaiFiles(visible), ...fontFiles.filter(file => existsSync(file))]
-  const rendered = new Resvg(svg, {
+  const rendered = await renderAsync(svg, {
     font: { fontFiles: files, loadSystemFonts: false, defaultFontFamily: 'Excalifont' },
     fitTo: { mode: 'original' },
-  }).render()
+  })
   return {
     png: rendered.asPng(),
     width: rendered.width,
