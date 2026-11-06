@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-mindmap",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Persistent collaborative Excalidraw canvas for the DSH Web GUI, where boxes get their own Agent Teams teammates under a canvas lead.",
   "type": "module",

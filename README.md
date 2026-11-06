@@ -16,14 +16,14 @@ Needs DSH 0.2.x with its Agent Teams plugin. MIT licensed.
 on **Agent Teams**. Then choose **Add plugin**, paste this address and install:
 
 ```
-https://github.com/aur3l14no/dsh-mindmap/releases/download/v0.1.0/dsh-mindmap-0.1.0.tgz
+https://github.com/aur3l14no/dsh-mindmap/releases/download/v0.1.1/dsh-mindmap-0.1.1.tgz
 ```
 
 **Terminal** (a CLI Web profile):
 
 ```sh
 dsh plugin --profile web add @deepseek-ai/dsh-experimental-agent-team-profile@$(dsh --version)
-dsh plugin --profile web add https://github.com/aur3l14no/dsh-mindmap/releases/download/v0.1.0/dsh-mindmap-0.1.0.tgz
+dsh plugin --profile web add https://github.com/aur3l14no/dsh-mindmap/releases/download/v0.1.1/dsh-mindmap-0.1.1.tgz
 dsh web
 ```
 
