@@ -8,6 +8,8 @@ import { Canvas } from '../src/host/canvas.js'
 import { createFromInput } from '../src/host/elements.js'
 import { renderScene, xiaolaiFiles } from '../src/host/render.js'
 import { prepareWrite } from '../src/host/write.js'
+import { readFile } from 'node:fs/promises'
+import { resolveScope, viewCanvas } from '../src/host/views.js'
 
 const fills = svg => [...svg.matchAll(/fill="(#[0-9a-f]{6})"/g)].map(match => match[1])
 
@@ -59,4 +61,22 @@ test('rendering leaves the Host free to serve others', async () => {
   const { png } = await renderScene({ elements: [text] })
   assert.ok(served, 'the event loop ran during the render')
   assert.ok(png.length > 0)
+})
+
+test('an export file keeps the newest view when an older render finishes after it', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'mindmap-render-'))
+  const canvas = new Canvas({ workspaceId: 'ws', workspacePath: dir, name: 'render' })
+  const writer = { name: 'lead', lead: 'L', sessionId: 'L' }
+  const elements = Array.from({ length: 1500 }, (_, index) => ({ type: 'text', id: `e${index}`, x: 0, y: index * 30, text: '慢慢画的中文标签', fontFamily: 5 }))
+  canvas.commit(prepareWrite(canvas, writer, { elements }).changes, { origin: 'test' })
+  const finished = []
+  const view = name => viewCanvas(canvas, resolveScope(canvas), {}).then(result => { finished.push(name); return result })
+  const older = view('older')
+  canvas.commit(prepareWrite(canvas, writer, { delete: elements.map(element => element.id) }).changes, { origin: 'test' })
+  const newer = view('newer')
+  const [, latest] = await Promise.all([older, newer])
+  assert.deepEqual(finished, ['newer', 'older'], 'the older, larger scene renders for longer')
+  assert.deepEqual(await readFile(latest.file), Buffer.from(latest.png))
+  await canvas.flush()
+  await rm(dir, { recursive: true, force: true })
 })

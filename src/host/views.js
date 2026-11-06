@@ -10,6 +10,8 @@ import { renderScene } from './render.js'
 
 const MAX_READ_CHARS = 60_000
 const MAX_SCALE = 8
+// Renders can finish out of order, so each export file remembers its newest request.
+const newestExport = new Map()
 
 /**
  * Resolve what a read or view covers.
@@ -107,6 +109,11 @@ export async function viewCanvas(canvas, target, { region, scale = 1, grid = fal
     box = unionBox(target.ids.map(id => canvas.get(id)).map(element => isBox(element) ? frameBox(element) : elementBounds(element)))
   }
   if (typeof scale !== 'number' || !(scale > 0) || scale > MAX_SCALE) throw new MindmapError(`scale is a number of pixels per canvas unit, above 0 and at most ${MAX_SCALE}`)
+  const dir = join(canvas.dir, 'exports')
+  const slug = target.box ? `box-${boxInfo(target.box).name}` : target.ids ? 'elements' : 'canvas'
+  const file = join(dir, `${slug.replace(/[^\p{L}\p{N}_-]+/gu, '_')}.png`)
+  const request = (newestExport.get(file) ?? 0) + 1
+  newestExport.set(file, request)
   const rendered = await renderScene(canvas.snapshot(), {
     region: box ?? undefined,
     ids: region || target.box ? undefined : target.ids,
@@ -114,11 +121,8 @@ export async function viewCanvas(canvas, target, { region, scale = 1, grid = fal
     grid,
     fontFiles,
   })
-  const dir = join(canvas.dir, 'exports')
   await mkdir(dir, { recursive: true })
-  const slug = target.box ? `box-${boxInfo(target.box).name}` : target.ids ? 'elements' : 'canvas'
-  const file = join(dir, `${slug.replace(/[^\p{L}\p{N}_-]+/gu, '_')}.png`)
-  await writeFile(file, rendered.png)
+  if (newestExport.get(file) === request) await writeFile(file, rendered.png)
   return { ...rendered, file, label: target.label }
 }
 
