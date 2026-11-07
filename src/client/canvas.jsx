@@ -12,6 +12,7 @@ import { AskPopover, BoxBadges } from './overlay.jsx'
 import { AgentPresence } from './presence.js'
 import pageCss from './styles.css'
 import { SceneSync } from './sync.js'
+import { cleanUpTooltip } from './tooltip.js'
 
 const LAST_CANVAS = 'dsh-mindmap:last-canvas'
 const TOAST_MS = 5000
@@ -183,6 +184,7 @@ function Board({ t, workspaceId, name, chat, openSession, colorScheme, language 
       presence.dispose()
       clearTimeout(toastTimer.current)
       cancelAnimationFrame(frameRef.current)
+      cleanUpTooltip(document)
     }
   }, [sync])
 
